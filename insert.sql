@@ -1,10 +1,12 @@
 COPY buffer
-FROM 'result.csv'
-DELIMITER '|'
-CSV HEADER;
-
+	FROM 'result.csv'
+	DELIMITER '|'
+	CSV HEADER;
+	
 --заполнение районов
-INSERT INTO neighborhoods (neighborhood) SELECT DISTINCT neighborhood FROM buffer;
+INSERT INTO neighborhoods (borough, neighborhood) 
+	SELECT DISTINCT borough, neighborhood 
+	FROM buffer;
 
 --заполнение налогов
 INSERT INTO tax (tax) SELECT DISTINCT tax_class_at_time_of_sale FROM buffer;
@@ -18,28 +20,32 @@ UPDATE tax SET description='Includes all other properties not included in class 
 	WHERE tax='4';
 
 --заполнение адресов
-INSERT INTO address_info (borough, neighborhood_id, address, apartment_nubmer, zip_code)
-	SELECT borough, neighborhoods.id, address, apartment_number, zip_code
-	FROM buffer INNER JOIN neighborhoods ON buffer.neighborhood=neighborhoods.neighborhood;
+INSERT INTO address_info (neighborhood_id, address, apartment_nubmer, zip_code)
+	SELECT DISTINCT neighborhoods.id, address, apartment_number, zip_code
+	FROM buffer INNER JOIN neighborhoods ON buffer.neighborhood=neighborhoods.neighborhood AND
+											buffer.borough=neighborhoods.borough;
 
 --заполнение информации о строении
 INSERT INTO building_info (residential_units, commercial_units, total_units, 
 						   land_square, gross_square, year_build)
-	SELECT residential_units, commercial_units, total_units, land_square_feet, gross_square_feet, year_built
+	SELECT DISTINCT residential_units, commercial_units, total_units, land_square_feet, gross_square_feet, year_built
 	FROM buffer;
 
---информация о недвижимости (не работает)
+--заполнить таблицу недвижимости
+--с вью из test.sql, переписать
 INSERT INTO Property_sales (building_class_category, tax_class_at_time_of_sale, id_address, id_building)
-	SELECT building_class_category, tax_class_at_time_of_sale, Address_info.id--, Building_info.id
-	FROM buffer
-	INNER JOIN Address_info ON Address_info.borough=buffer.borough AND
-							Address_info.address=buffer.address AND
-							Address_info.apartment_nubmer=buffer.apartment_number
-	INNER JOIN Building_info ON Building_info.residential_units = buffer.residential_units AND
-							Building_info.commercial_units = buffer.commercial_units AND
-							Building_info.total_units = buffer.total_units AND
-							Building_info.land_square = buffer.land_square_feet AND
-							Building_info.gross_square = buffer.gross_square_feet AND
-							Building_info.year_build = buffer.year_built
+	SELECT DISTINCT building_class_category, tax_class_at_time_of_sale, Address_info.id, Building_info.id
+	FROM tmp_buffer1
+	INNER JOIN Address_info ON Address_info.neighborhood_id=tmp_buffer1.neighborhood_id AND
+							Address_info.address=tmp_buffer1.address AND
+							(Address_info.apartment_nubmer=tmp_buffer1.apartment_number OR
+							(Address_info.apartment_nubmer IS NULL AND tmp_buffer1.apartment_number IS NULL))
+	INNER JOIN Building_info ON Building_info.residential_units = tmp_buffer1.residential_units AND
+							Building_info.commercial_units = tmp_buffer1.commercial_units AND
+							Building_info.total_units = tmp_buffer1.total_units AND
+							Building_info.land_square = tmp_buffer1.land_square_feet AND
+							Building_info.gross_square = tmp_buffer1.gross_square_feet AND
+							Building_info.year_build = tmp_buffer1.year_built;
 
-VACUUM;
+
+
