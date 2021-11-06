@@ -1,11 +1,11 @@
 CREATE TABLE Neighborhoods (
   id SERIAL UNIQUE PRIMARY KEY,
-  neighborhood varchar UNIQUE
+  borough int,
+  neighborhood varchar
 );
 
 CREATE TABLE Address_info (
   id SERIAL UNIQUE PRIMARY KEY,
-  borough int,
   neighborhood_id int REFERENCES neighborhoods (id),
   address varchar,
   apartment_nubmer varchar,
@@ -60,8 +60,11 @@ CREATE TABLE buffer(
 	SALE_DATE date
 );
 
-
-
+drop table Neighborhoods cascade;
+drop table Address_info cascade;
+drop table Property_sales cascade;
+drop table Sale cascade;
+drop table  cascade;
 
 
 
