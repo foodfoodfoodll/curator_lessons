@@ -1,70 +1,72 @@
-CREATE TABLE Neighborhoods (
-  id SERIAL UNIQUE PRIMARY KEY,
-  borough int,
-  neighborhood varchar
+CREATE TABLE Sale (
+  sale_id SERIAL PRIMARY KEY,
+  price money NOT NULL,
+  date date NOT NULL,
+  property_id int NOT NULL
 );
 
-CREATE TABLE Address_info (
-  id SERIAL UNIQUE PRIMARY KEY,
-  neighborhood_id int REFERENCES neighborhoods (id),
-  address varchar,
-  apartment_nubmer varchar,
-  zip_code int
-);
-
-CREATE TABLE Building_info (
-  id SERIAL UNIQUE PRIMARY KEY,
-  residential_units int,
-  commercial_units int,
-  total_units int,
-  land_square int,
-  gross_square int,
-  year_build int
+CREATE TABLE Property_info (
+  property_id SERIAL PRIMARY KEY,
+  building_class_category varchar,
+  tax varchar,
+  address_id int NOT NULL,
+  building_id int NOT NULL
 );
 
 CREATE TABLE Tax (
-	tax varchar UNIQUE PRIMARY KEY,
-	description varchar
+  tax varchar PRIMARY KEY,
+  description varchar NOT NULL
 );
 
-CREATE TABLE Property_sales (
-  id SERIAL UNIQUE PRIMARY KEY, 
-  building_class_category varchar,
-  tax_class_at_time_of_sale varchar REFERENCES Tax (tax),
-  id_address int REFERENCES Address_info (id),
-  id_building int REFERENCES Building_info (id)
+CREATE TABLE Address_info (
+  address_id SERIAL PRIMARY KEY,
+  neighborhood_id int NOT NULL,
+  address varchar NOT NULL,
+  apartment_number varchar,
+  zip_code integer NOT NULL
 );
 
-CREATE TABLE Sale (
-  id SERIAL UNIQUE PRIMARY KEY,
-  price money,
-  date date,
-  id_property int REFERENCES Property_sales (id)
+CREATE TABLE Building_info (
+  building_id SERIAL PRIMARY KEY,
+  residential_units integer NOT NULL,
+  commercial_units integer NOT NULL,
+  total_units integer NOT NULL,
+  land_square integer NOT NULL,
+  gross_square integer NOT NULL,
+  year_built integer NOT NULL
 );
+
+CREATE TABLE Neighborhoods (
+  neighborhood_id SERIAL PRIMARY KEY,
+  neighborhood varchar NOT NULL,
+  borough int NOT NULL
+);
+
+ALTER TABLE Sale ADD FOREIGN KEY (property_id) REFERENCES Property_info(property_id);
+
+ALTER TABLE Property_info ADD FOREIGN KEY (address_id) REFERENCES Address_info (address_id);
+
+ALTER TABLE Address_info ADD FOREIGN KEY (neighborhood_id) REFERENCES Neighborhoods (neighborhood_id);
+
+ALTER TABLE Property_info ADD FOREIGN KEY (building_id) REFERENCES Building_info (building_id);
+
+ALTER TABLE Property_info ADD FOREIGN KEY (tax) REFERENCES Tax (tax);
 
 CREATE TABLE buffer(
-	BOROUGH int,
-	NEIGHBORHOOD varchar,
-	BUILDING_CLASS_CATEGORY varchar,
-	ADDRESS varchar,
-	APARTMENT_NUMBER varchar,
-	ZIP_CODE int,
-	RESIDENTIAL_UNITS int,
-	COMMERCIAL_UNITS int,
-	TOTAL_UNITS int,
-	LAND_SQUARE_FEET int,
-	GROSS_SQUARE_FEET int,
-	YEAR_BUILT int,
-	TAX_CLASS_AT_TIME_OF_SALE varchar,
-	SALE_PRICE money, 
-	SALE_DATE date
+	borough int,
+	neighborhood varchar,
+	building_class_category varchar,
+	address varchar,
+	apartment_number varchar,
+	zip_code int,
+	residential_units int,
+	commercial_units int,
+	total_units int,
+	land_square_feet int,
+	gross_square_feet int,
+	year_built int,
+	tax_class_at_time_of_sale varchar,
+	sale_price money, 
+	sale_date date	
 );
-
-drop table Neighborhoods cascade;
-drop table Address_info cascade;
-drop table Property_sales cascade;
-drop table Sale cascade;
-drop table  cascade;
-
-
 
